@@ -18,7 +18,7 @@ impl Trie {
             end_of_word: false,
         };
 
-        Self { root }
+        Self { root: root }
     }
 
     pub fn insert(&mut self, s: &str) {
@@ -67,6 +67,10 @@ impl Trie {
             } else {
                 return false;
             }
+        }
+         
+        if !node.end_of_word {
+            return false;
         }
 
         /* s is present in the Trie, but it also is a substring of a longer string within
