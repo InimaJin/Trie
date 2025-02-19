@@ -2,9 +2,10 @@ use trie::Trie;
 
 fn main() {
     let mut t = Trie::new();
-    t.insert("Hello");
-    t.insert("Hi");
-    t.insert("Why");
-    
-    println!("{}", t.contains_full("Hello"));
+
+    t.insert("PWD");
+    t.insert("PWDL");
+    t.insert("PWDLA");
+    t.remove("PWD");
+    println!("{}", t);
 }
