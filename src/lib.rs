@@ -54,21 +54,20 @@ impl Trie {
                  * seems to be present in the Trie. */
                 remove_index = None;
             }
-
+            
             if let Some(next_node) = node.map.get_mut(&ch) {
-                if next_node.map.len() <= 1 {
-                    if remove_index.is_none() {
-                        remove_index = Some(i);
-                    }
-                } else {
-                    remove_index = None;
-                }
                 node = next_node;
+                if node.map.len() > 1 {
+                    remove_index = None;
+                } else if remove_index.is_none() {
+                    remove_index = Some(i);
+                }
             } else {
                 return false;
             }
         }
-         
+
+        // s is not present in the Trie.
         if !node.end_of_word {
             return false;
         }
@@ -94,6 +93,59 @@ impl Trie {
         true
     }
 
+    /* Removes all strings from the Trie that share a common prefix s.
+     * Returns true if at least one string has been removed.
+     * In structure similar to remove(), so refer to its comments. */
+    pub fn remove_pref(&mut self, s: &str) -> bool {
+        if s.is_empty() {
+            return false;
+        }
+        if s.len() == 1 {
+            let ch = s.chars().next().unwrap();
+            return self.root.map.remove(&ch).is_some();
+        }
+
+        let mut remove_index = None;
+        let mut node = &mut self.root;
+        for (i, ch) in s.chars().enumerate() {
+            if let Some(next_node) = node.map.get_mut(&ch) {
+                node = next_node;
+
+                if node.map.len() > 1 && i != s.len() - 1 {
+                    remove_index = None;
+                } else if remove_index.is_none() {
+                    remove_index = Some(i);
+                }
+            } else {
+                return false;
+            }
+        }
+
+        node = &mut self.root;
+        let remove_index = remove_index.unwrap();
+        for (i, ch) in s.chars().enumerate() {
+            if i == remove_index {
+                node.map.remove(&ch);
+                break;
+            }
+            node = node.map.get_mut(&ch).unwrap();
+        }
+
+        true
+    }
+
+    pub fn contains(&self, s: &str) -> bool {
+        let mut node = &self.root;
+        for ch in s.chars() {
+            if let Some(next_node) = node.map.get(&ch) {
+                node = next_node;
+            } else {
+                return false;
+            }
+        }
+        node.end_of_word
+    }
+
     pub fn contains_pref(&self, s: &str) -> bool {
         let mut node = &self.root;
         for ch in s.chars() {
@@ -105,18 +157,6 @@ impl Trie {
         }
 
         true
-    }
-
-    pub fn contains_full(&self, s: &str) -> bool {
-        let mut node = &self.root;
-        for ch in s.chars() {
-            if let Some(next_node) = node.map.get(&ch) {
-                node = next_node;
-            } else {
-                return false;
-            }
-        }
-        node.end_of_word
     }
 }
 
