@@ -18,7 +18,7 @@ impl Trie {
             end_of_word: false,
         };
 
-        Self { root: root }
+        Self { root }
     }
 
     /* Counts and returns the number of strings present in the Trie. */
@@ -30,7 +30,7 @@ impl Trie {
             if node.end_of_word {
                 size += 1;
             }
-            
+
             node.map.values().for_each(|x| {
                 stack.push(x);
             });
@@ -159,6 +159,7 @@ impl Trie {
         true
     }
 
+    /* Whether or not s is present in the Trie. */
     pub fn contains(&self, s: &str) -> bool {
         let mut node = &self.root;
         for ch in s.chars() {
@@ -171,6 +172,7 @@ impl Trie {
         node.end_of_word
     }
 
+    /* Whether or not at least one string with a prefix s is present in the Trie. */
     pub fn contains_pref(&self, s: &str) -> bool {
         let mut node = &self.root;
         for ch in s.chars() {
