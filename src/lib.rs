@@ -21,6 +21,23 @@ impl Trie {
         Self { root: root }
     }
 
+    /* Counts and returns the number of strings in the Trie. */
+    pub fn size(&self) -> usize {
+        let mut stack: Vec<&TrieNode> = self.root.map.values().collect();
+        let mut size = 0;
+
+        while let Some(node) = stack.pop() {
+            if node.end_of_word {
+                size += 1;
+            }
+            for next_node in node.map.values() {
+                stack.push(next_node);
+            }
+        }
+
+        size
+    }
+
     pub fn insert(&mut self, s: &str) {
         if s.is_empty() {
             return;
