@@ -21,7 +21,7 @@ impl Trie {
         Self { root: root }
     }
 
-    /* Counts and returns the number of strings in the Trie. */
+    /* Counts and returns the number of strings present in the Trie. */
     pub fn size(&self) -> usize {
         let mut stack: Vec<&TrieNode> = self.root.map.values().collect();
         let mut size = 0;
@@ -30,28 +30,36 @@ impl Trie {
             if node.end_of_word {
                 size += 1;
             }
-            for next_node in node.map.values() {
-                stack.push(next_node);
-            }
+            
+            node.map.values().for_each(|x| {
+                stack.push(x);
+            });
         }
 
         size
     }
 
-    pub fn insert(&mut self, s: &str) {
+    /* Ensures that s is present in the Trie. 
+     * Returns true only if s is not present in the Trie when insert() is called. */
+    pub fn insert(&mut self, s: &str) -> bool {
         if s.is_empty() {
-            return;
+            return false;
         }
-
+        
+        let mut is_new = false;
         let mut node = &mut self.root;
         for ch in s.chars() {
-            node = node.map.entry(ch).or_insert(TrieNode {
-                map: HashMap::new(),
-                end_of_word: false,
+            node = node.map.entry(ch).or_insert_with(|| {
+                is_new = true;
+                TrieNode {
+                    map: HashMap::new(),
+                    end_of_word: false,
+                }
             });
         }
 
         node.end_of_word = true;
+        is_new
     }
 
     /* Removes an entire string s from the Trie.
@@ -71,7 +79,7 @@ impl Trie {
                  * seems to be present in the Trie. */
                 remove_index = None;
             }
-            
+
             if let Some(next_node) = node.map.get_mut(&ch) {
                 node = next_node;
                 if node.map.len() > 1 {
