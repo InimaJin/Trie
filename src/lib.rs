@@ -185,6 +185,33 @@ impl Trie {
 
         true
     }
+
+    /* Builds and returns a vector holding all strings present in the Trie.
+     * The vector is not sorted, but the strings are grouped by prefix, i.e.
+     * strings with common prefix are adjacent. */    
+    pub fn as_vec(&self) -> Vec<String> {
+        let mut strings = Vec::new();
+        
+        self.walk_nodes(&mut vec![], &self.root, &mut strings);
+
+        strings
+    }
+
+    /* Recursive function responsible for reading all strings in the Trie into the vector 'all'. */
+    fn walk_nodes(&self, tmp_string: &mut Vec<char>, node: &TrieNode, all_strings: &mut Vec<String>) {
+        for (ch, next_node) in node.map.iter() {
+            tmp_string.push(*ch);
+            if next_node.end_of_word {
+                all_strings.push(tmp_string.iter().collect());
+            }
+            if !next_node.map.is_empty() {
+                self.walk_nodes(tmp_string, next_node, all_strings);
+            }
+            tmp_string.pop();
+        }
+    }
+
+
 }
 
 impl fmt::Display for Trie {
