@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use std::fmt;
+
+mod traits;
 
 #[derive(Debug)]
 pub struct TrieNode {
@@ -39,13 +40,17 @@ impl Trie {
         size
     }
 
-    /* Ensures that s is present in the Trie. 
+    pub fn is_empty(&self) -> bool {
+        self.size() == 0
+    }
+
+    /* Ensures that s is present in the Trie.
      * Returns true only if s is not present in the Trie when insert() is called. */
     pub fn insert(&mut self, s: &str) -> bool {
         if s.is_empty() {
             return false;
         }
-        
+
         let mut is_new = false;
         let mut node = &mut self.root;
         for ch in s.chars() {
@@ -188,17 +193,21 @@ impl Trie {
 
     /* Builds and returns a vector holding all strings present in the Trie.
      * The vector is not sorted, but the strings are grouped by prefix, i.e.
-     * strings with common prefix are adjacent. */    
+     * strings with common prefix are adjacent. */
     pub fn as_vec(&self) -> Vec<String> {
         let mut strings = Vec::new();
-        
+
         self.walk_nodes(&mut vec![], &self.root, &mut strings);
 
         strings
     }
-
     /* Recursive function responsible for reading all strings in the Trie into the vector 'all'. */
-    fn walk_nodes(&self, tmp_string: &mut Vec<char>, node: &TrieNode, all_strings: &mut Vec<String>) {
+    fn walk_nodes(
+        &self,
+        tmp_string: &mut Vec<char>,
+        node: &TrieNode,
+        all_strings: &mut Vec<String>,
+    ) {
         for (ch, next_node) in node.map.iter() {
             tmp_string.push(*ch);
             if next_node.end_of_word {
@@ -209,13 +218,5 @@ impl Trie {
             }
             tmp_string.pop();
         }
-    }
-
-
-}
-
-impl fmt::Display for Trie {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#?}", self.root.map)
     }
 }
