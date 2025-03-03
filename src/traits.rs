@@ -1,11 +1,4 @@
 use crate::Trie;
-use std::fmt;
-
-impl fmt::Display for Trie {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#?}", self.root.map)
-    }
-}
 
 impl From<&Vec<String>> for Trie {
     fn from(sequence: &Vec<String>) -> Self {

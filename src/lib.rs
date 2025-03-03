@@ -8,6 +8,7 @@ pub struct TrieNode {
     end_of_word: bool,
 }
 
+#[derive(Debug)]
 pub struct Trie {
     root: TrieNode,
 }
