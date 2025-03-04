@@ -20,7 +20,7 @@ impl Trie {
             end_of_word: false,
         };
 
-        Self { root }
+        Self { root } 
     }
 
     /* Counts and returns the number of strings present in the Trie. */
@@ -42,7 +42,11 @@ impl Trie {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.size() == 0
+        self.root.map.is_empty()
+    }
+
+    pub fn clear(&mut self) {
+        self.root.map.clear();
     }
 
     /* Ensures that s is present in the Trie.
@@ -193,16 +197,44 @@ impl Trie {
     }
 
     /* Builds and returns a vector holding all strings present in the Trie.
-     * The vector is not sorted, but the strings are grouped by prefix, i.e.
-     * strings with common prefix are adjacent. */
+     * The vector is not sorted, but the strings are grouped by prefix. */
     pub fn as_vec(&self) -> Vec<String> {
-        let mut strings = Vec::new();
+        let mut strings = vec![];
 
         self.walk_nodes(&mut vec![], &self.root, &mut strings);
 
         strings
     }
-    /* Recursive function responsible for reading all strings in the Trie into the vector 'all'. */
+
+    /* Like as_vec(). However, the returned vector only holds strings that share a common prefix s. */
+    pub fn as_vec_pref(&self, s: &str) -> Vec<String> {
+        if s.is_empty() {
+            return vec![];
+        }
+        let mut strings = vec![];
+        let mut node = &self.root;
+        for ch in s.chars() {
+            if let Some(next_node) = node.map.get(&ch) {
+                node = next_node;
+            } else {
+                return vec![];
+            }
+        }
+        
+        //walk_nodes() does not consider that the prefix itself might be a string present in the Trie.
+        if node.end_of_word {
+            strings.push(s.into())
+        }
+        
+        /* 'node' is the node pointed to by the last character of s. tmp_string is initialized
+         * with the characters of s. This way, walk_nodes will not pop any characters within the prefix. */
+        self.walk_nodes(&mut s.chars().collect(), node, &mut strings);
+        
+        strings
+    }
+
+    /* Recursively walks all the child nodes of 'node' to construct the strings formed by their characters, 
+     * while feeding the complete strings into all_strings. */
     fn walk_nodes(
         &self,
         tmp_string: &mut Vec<char>,
