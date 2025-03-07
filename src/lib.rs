@@ -34,7 +34,11 @@ impl Trie {
             }
 
             node.map.values().for_each(|x| {
-                stack.push(x);
+                if x.map.is_empty() {
+                    size += 1;
+                } else {
+                    stack.push(x);
+                }
             });
         }
 
