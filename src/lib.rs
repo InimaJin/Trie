@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::Cell, collections::HashMap};
 
 mod traits;
 
@@ -11,6 +11,7 @@ pub struct TrieNode {
 #[derive(Debug)]
 pub struct Trie {
     root: TrieNode,
+    stored_size: Cell<Option<usize>>,
 }
 
 impl Trie {
@@ -20,11 +21,18 @@ impl Trie {
             end_of_word: false,
         };
 
-        Self { root } 
+        Self {
+            root,
+            stored_size: Cell::new(Some(0)),
+        }
     }
 
-    /* Counts and returns the number of strings present in the Trie. */
+    /* Returns the number of strings in the Trie. If unknown, all strings are counted first and the size is stored. */
     pub fn size(&self) -> usize {
+        if let Some(size) = self.stored_size.get() {
+            return size;
+        }
+
         let mut stack: Vec<&TrieNode> = self.root.map.values().collect();
         let mut size = 0;
 
@@ -42,7 +50,28 @@ impl Trie {
             });
         }
 
+        self.stored_size.set(Some(size));
         size
+    }
+
+    /* Increments (incr = true) or decrements (incr = false) the stored size by 1. If stored size is None, nothing happens. */
+    fn edit_size(&self, incr: bool) {
+        let mut size;
+        if let Some(s) = self.stored_size.get() {
+            size = s;
+        } else {
+            return;
+        }
+
+        if incr {
+            size += 1;
+        } else if size != 0 {
+            size -= 1;
+        } else {
+            return;
+        }
+
+        self.stored_size.set(Some(size));
     }
 
     pub fn is_empty(&self) -> bool {
@@ -51,6 +80,7 @@ impl Trie {
 
     pub fn clear(&mut self) {
         self.root.map.clear();
+        self.stored_size.set(Some(0));
     }
 
     /* Ensures that s is present in the Trie.
@@ -60,19 +90,23 @@ impl Trie {
             return false;
         }
 
-        let mut is_new = false;
         let mut node = &mut self.root;
         for ch in s.chars() {
-            node = node.map.entry(ch).or_insert_with(|| {
-                is_new = true;
-                TrieNode {
-                    map: HashMap::new(),
-                    end_of_word: false,
-                }
+            node = node.map.entry(ch).or_insert(TrieNode {
+                map: HashMap::new(),
+                end_of_word: false,
             });
         }
 
-        node.end_of_word = true;
+        let mut is_new = false;
+        if !node.end_of_word {
+            is_new = true;
+            node.end_of_word = true;
+        }
+
+        if is_new {
+            self.edit_size(true);
+        }
         is_new
     }
 
@@ -115,6 +149,7 @@ impl Trie {
          * the Trie which must not be removed accidentally when removing s. */
         if !node.map.is_empty() {
             node.end_of_word = false;
+            self.edit_size(false);
             return true;
         }
 
@@ -129,6 +164,7 @@ impl Trie {
             node = node.map.get_mut(&ch).unwrap();
         }
 
+        self.edit_size(false);
         true
     }
 
@@ -141,6 +177,7 @@ impl Trie {
         }
         if s.len() == 1 {
             let ch = s.chars().next().unwrap();
+            self.stored_size.set(None);
             return self.root.map.remove(&ch).is_some();
         }
 
@@ -170,6 +207,7 @@ impl Trie {
             node = node.map.get_mut(&ch).unwrap();
         }
 
+        self.stored_size.set(None);
         true
     }
 
@@ -224,20 +262,20 @@ impl Trie {
                 return vec![];
             }
         }
-        
+
         //walk_nodes() does not consider that the prefix itself might be a string present in the Trie.
         if node.end_of_word {
             strings.push(s.into())
         }
-        
+
         /* 'node' is the node pointed to by the last character of s. tmp_string is initialized
          * with the characters of s. This way, walk_nodes will not pop any characters within the prefix. */
         self.walk_nodes(&mut s.chars().collect(), node, &mut strings);
-        
+
         strings
     }
 
-    /* Recursively walks all the child nodes of 'node' to construct the strings formed by their characters, 
+    /* Recursively walks all the child nodes of 'node' to construct the strings formed by their characters,
      * while feeding the complete strings into all_strings. */
     fn walk_nodes(
         &self,
