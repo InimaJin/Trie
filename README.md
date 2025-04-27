@@ -6,6 +6,6 @@ This hash map-based trie implementation enables prefix-oriented operations on a 
 
 ![Code example](/assets/code.png)
 
-For further insight into the available methods and their behavior, refer to the comments in `lib.rs`.
+For further insight into the available methods and their behavior, refer to the comments in [`lib.rs`](/src/lib.rs).
 
 #### Have fun!
